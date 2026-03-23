@@ -105,6 +105,12 @@ int main()
             }
         }
 
+        // Remove this if using the big dataset
+        // This exists to not delete the windows handle as teh small data set is too small to keep the process alive
+        // This allows the consumer to finish it's run
+        std::string wait;
+        cin >> wait;
+
         // Signal completion to the Consumer process
         sharedLOB->producerDone.store(true, std::memory_order_release);
         std::cout << "[STATUS] Producer Run completed. ~150M orders pushed." << std::endl;
