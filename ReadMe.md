@@ -42,9 +42,9 @@
 This project is build for a Windows10/11 machine and requires a C++20 compatible compiler
 
 Note:
-Due to github's file storage limits, the orginal dataset used for the runs that produced the above benchmarks coudl not be uploaded here. It is over 500MB. <br>
-A small dataset has been added which conatins the first 10k entries of that dataset. An input statement is added in the prodcuer app which allows you to stop the OS from deleting the shared space... as it completes the run nearly instantly. <br>
-The dataset can be downloaded from https://www.kibot.com/free_historical_data.aspx <br>
+Due to github's file storage limits, the orginal dataset used for the runs that produced the above benchmarks could not be uploaded here. It is over 500MB. <br>
+A small dataset has been added which conatins the first 10k entries of that dataset. The producer is built to recycle the orders and hit 150 million orders, which will still give you the above results.<br>
+The full dataset can be downloaded from https://www.kibot.com/free_historical_data.aspx <br>
 The "Tick with bid/ask data" is the dataset used. <br>
 You can add it to data/historical/ and change the filename in producerMain.cpp to that
 
