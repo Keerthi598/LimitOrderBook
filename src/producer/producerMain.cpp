@@ -49,7 +49,7 @@ int main()
         // Initialize the Windows shared segment
         SharedMemory<SharedLOB> shm("Local\\LOB_Bus", true);
 
-        const std::string filePath = DATA_PATH "/IVE_tickbidask.csv";
+        const std::string filePath = DATA_PATH "/smallDataSample_10k.csv";
         std::ifstream file(filePath);
 
         if (!file.is_open())
