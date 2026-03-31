@@ -56,16 +56,16 @@ You can add it to data/historical/ and change the filename in producerMain.cpp t
    cmake .. -DCMAKE_BUILD_TIME=Release 
    cmake --build . --config Release 
    ```
-2. Running the benchmark
+2. Running the benchmark <br>
     The build process generates two separate executables in the build/release/Release directory
     Open two terminals
-3. Terminal A
+3. Terminal A <br>
     Run the producer
     ```bash
     ./producerApp.exe
    ```
    Wait for the message: [STATUS] Shared Memory Initialized. Ready for Matching.  
-4. Terminal B
+4. Terminal B <br>
     Once the producerApp displays the ready status, run the consumerApp on terminal B
     ```bash
     ./consumerApp.exe
