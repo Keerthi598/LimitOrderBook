@@ -11,6 +11,7 @@
 #include "matchingEngine.h"
 #include "OrderPool.h"
 #include "SharedMemory.hpp"
+#include "LatencyTracker.h"
 
 int main()
 {
@@ -21,6 +22,7 @@ int main()
         uint32_t poolSize = BUFFER_SIZE << 16;
         OrderPool pool(poolSize);
         matchingEngine engine(&pool);
+        LatencyTracker tracker{trackerSize};
 
         // 2. Shared Memory Attachment
         // "false" cos we are attaching to an existing segment created by the producer
@@ -32,12 +34,8 @@ int main()
 
         std::cout << "[STATUS] Consumer attached. Awaiting Producer data..." << std::endl;
 
-        // 3. Benchmarking Timers
-        auto startTime = std::chrono::high_resolution_clock::now();
-        auto lastReportTime = startTime;
-        uint32_t lastReportCount = 0;
 
-        // 4. The Hot Loop
+        // 3. The Hot Loop
         while (true)
         {
             // Wait if the buffer is empty and producer is still active
@@ -56,6 +54,9 @@ int main()
                 break;
             }
 
+            // 4. Begin the clock to time this order's processing
+            tracker.startClock();
+
             // 5. Process Order
             // Map the global index to the circular buffer index
             Order& slot = shmBuffer->orders[consumedIndex % BUFFER_SIZE];
@@ -66,48 +67,28 @@ int main()
             consumedIndex++;
             totalProcessed++;
 
-            // 6. Lives metrics every second, but check if time passed only every 10M orders
-            if (consumedIndex % 10000000 == 0)
-            {
-                auto now = std::chrono::high_resolution_clock::now();
-                auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastReportTime).count();
-
-                if (elapsedMs >= 1000)
-                {
-                    double mps = (consumedIndex - lastReportCount) / (elapsedMs / 1000.0) / 1e6;
-                    std::cout << "[LIVE] Processed: " << consumedIndex
-                              << " | Current Speed: " << std::fixed << std::setprecision(2) << mps << " M/s\n";
-
-                    lastReportTime = now;
-                    lastReportCount = consumedIndex;
-                }
-            }
-
-            // 7. Tail Update
+            // 6. Tail Update
             shmBuffer->tail.store(consumedIndex, std::memory_order_release);
+
+            // 7. Stop this clock and record teh time taken
+            tracker.stopClockAndRecord();
+
+            // Status update every 10 million orders
+            if (consumedIndex % 10000000 == 0) {
+                uint32_t millDone = consumedIndex / 1000000;
+                std::cout << "[STATUS] " << millDone << " Million Orders Processed\n";
+            }
         }
 
-        auto endTime = std::chrono::high_resolution_clock::now();
-        auto totalNs = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count();
-
-        // --- FINAL PERFORMANCE REPORT ---
-        double avgLatencyNs = static_cast<double>(totalNs) / totalProcessed;
-        double throughputMps = (static_cast<double>(totalProcessed) / totalNs) * 1e9 / 1e6;
-
-        std::cout << "\n==========================================\n";
-        std::cout << "  PERFORMANCE METRICS (N = " << totalProcessed << ")\n";
+        // 8. Final metrics report
+        tracker.printLatencyReport();
         std::cout << "==========================================\n";
-        std::cout << "Total Time  : " << std::fixed << std::setprecision(2) << totalNs / 1e6 << " ms\n";
-        std::cout << "Avg Latency : " << std::fixed << std::setprecision(2) << avgLatencyNs << " ns/order\n";
-        std::cout << "Throughput  : " << std::fixed << std::setprecision(2) << throughputMps << " million orders/sec\n";
+        std::cout << "           MATCHING ENGINE METRICS   \n";
         std::cout << "==========================================\n";
-        std::cout << "==========================================" << std::endl;
-        std::cout << "           MATCHING ENGINE METRICS   " << std::endl;
-        std::cout << "==========================================" << std::endl;
-        std::cout << "Total Matches Executed    : " << engine.getMatchCount() << std::endl;
-        std::cout << "Total Volume Traded       : " << engine.getTotalVolume() << std::endl;
-        std::cout << "Total Orders Processed    : " << engine.getTotalOrders() << std::endl;
-        std::cout << "==========================================" << std::endl;
+        std::cout << "Total Matches Executed    : " << engine.getMatchCount() << "\n";
+        std::cout << "Total Volume Traded       : " << engine.getTotalVolume() << "\n";
+        std::cout << "Total Orders Processed    : " << engine.getTotalOrders() << "\n";
+        std::cout << "==========================================\n";
     }
     catch (const std::exception& e)
     {

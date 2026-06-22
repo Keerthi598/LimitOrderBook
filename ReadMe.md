@@ -4,10 +4,13 @@
 
 ### Performance Benchmarks
 
-    - Throughput: 24.85 million orders/sec
-    - Average Latency: 40.24 ns/order
-    - Dataset: 112M+ real-world tick records (Kibot)
-    - Environment: Windows 11
+    - Throughput       : 24.85 million orders/sec
+    - Average Latency  : 52.37 ns/order
+    - P90 Latency      : 100 ns
+    - P99 Latency      : 200 ns
+    - P99.9 Latency    : 800 ns
+    - Dataset          : 112M+ real-world tick records (Kibot)
+    - Environment      : Windows 11
 
 ![DemoRun](demoAssets/DemoGif.gif)
 

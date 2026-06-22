@@ -90,7 +90,7 @@ int main()
         std::cout << "[STATUS] Shared Memory Initialized. Ready for Matching." << std::endl;
 
         // --- BENCHMARK EXECUTION ---
-        constexpr uint32_t targetBenchMarkCount = 150'000'000;
+        constexpr uint32_t targetBenchMarkCount = 100'000'000;
         uint32_t processedSoFar = 0;
         auto* sharedLOB = shm.get();
 
